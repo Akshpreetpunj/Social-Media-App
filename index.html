@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- "StAuth10222: I Akshpreet Singh Punj, 000820040 certify that this material is my original work. No other person's work has been used without due acknowledgement. I have not made my work available to anyone else." -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Title -->
+  <title>Social Media Disaster Monitoring Application</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Vue -->
+  <script src="https://unpkg.com/vue@3"></script>
+  <script src="https://unpkg.com/vuex@4"></script>
+  <script src="https://unpkg.com/vue-router@4"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Custom Styling -->
+  <style>
+    /* Navbar Items Styling */
+    .nav-item {
+      font-size: 18px;
+    }
+
+    /* Jumbotron Styling */
+    .jumbotron {
+      border: 1px solid black;
+    }
+
+    /* Card Styling */
+    .card {
+      background-color: lightgray;
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1 class="text-center my-3">Social Media Disaster Monitoring Application</h1>
+
+    <!-- navbar outlet to display navigation bar -->
+    <navbar></navbar>
+
+    <div class="container my-3">
+      <!-- route outlet to display the component matched by the route -->
+      <router-view></router-view>
+    </div>
+  </div>
+
+  <script>
+    // create the connection
+    var socket = io();
+
+    // create a plugin for our store that listens for the post
+    // message and commits an add_post mutation when it does occur
+    const plugin = function createWebSocketPlugin() {
+      return (store) => {
+        socket.on('post', data => {
+          console.log(data);
+          store.commit('add_post', data)
+        });
+      }
+    }
+
+    // the store that will have a posts state variable that is updated by
+    // the add_post mutation, it uses the above plugin
+    const store = Vuex.createStore({
+      state() {
+        return {
+          posts: [], // array for storing the posts
+        }
+      },
+      mutations: {
+        // add new post to the posts array 
+        add_post(state, post) {
+          state.posts.push(post)
+        }
+      },
+      getters: {
+        // get the posts
+        getPosts: state => {
+          return state.posts;
+        },
+        // posts count
+        postsTotal: (state, getters) => {
+          return getters.getPosts.length;
+        },
+
+        // low priority level count of each problem types
+        fireLowCount: state => {
+          return state.posts.filter(post => post.problem === "Fire" && post.priority === "Low").length;
+        },
+        floodLowCount: state => {
+          return state.posts.filter(post => post.problem === "Flood" && post.priority === "Low").length;
+        },
+        powerLowCount: state => {
+          return state.posts.filter(post => post.problem === "Power" && post.priority === "Low").length;
+        },
+        medicalLowCount: state => {
+          return state.posts.filter(post => post.problem === "Medical" && post.priority === "Low").length;
+        },
+        // low priority level posts count
+        lowPostsTotal: state => {
+          return state.posts.filter(post => post.priority === "Low").length;
+        },
+
+        // medium priority level count of each problem types
+        fireMediumCount: state => {
+          return state.posts.filter(post => post.problem === "Fire" && post.priority === "Medium").length;
+        },
+        floodMediumCount: state => {
+          return state.posts.filter(post => post.problem === "Flood" && post.priority === "Medium").length;
+        },
+        powerMediumCount: state => {
+          return state.posts.filter(post => post.problem === "Power" && post.priority === "Medium").length;
+        },
+        medicalMediumCount: state => {
+          return state.posts.filter(post => post.problem === "Medical" && post.priority === "Medium").length;
+        },
+        // medium priority level posts count
+        mediumPostsTotal: state => {
+          return state.posts.filter(post => post.priority === "Medium").length;
+        },
+
+        // high priority level count of each problem types
+        fireHighCount: state => {
+          return state.posts.filter(post => post.problem === "Fire" && post.priority === "High").length;
+        },
+        floodHighCount: state => {
+          return state.posts.filter(post => post.problem === "Flood" && post.priority === "High").length;
+        },
+        powerHighCount: state => {
+          return state.posts.filter(post => post.problem === "Power" && post.priority === "High").length;
+        },
+        medicalHighCount: state => {
+          return state.posts.filter(post => post.problem === "Medical" && post.priority === "High").length;
+        },
+        // high priority level posts count
+        highPostsTotal: state => {
+          return state.posts.filter(post => post.priority === "High").length;
+        },
+
+        // critical priority level count of each problem types
+        fireCriticalCount: state => {
+          return state.posts.filter(post => post.problem === "Fire" && post.priority === "Critical").length;
+        },
+        floodCriticalCount: state => {
+          return state.posts.filter(post => post.problem === "Flood" && post.priority === "Critical").length;
+        },
+        powerCriticalCount: state => {
+          return state.posts.filter(post => post.problem === "Power" && post.priority === "Critical").length;
+        },
+        medicalCriticalCount: state => {
+          return state.posts.filter(post => post.problem === "Medical" && post.priority === "Critical").length;
+        },
+        // critical priority level posts count
+        criticalPostsTotal: state => {
+          return state.posts.filter(post => post.priority === "Critical").length;
+        },
+
+        // count of each problem type
+        firePostsTotal: state => {
+          return state.posts.filter(post => post.problem === "Fire").length;
+        },
+
+        floodPostsTotal: state => {
+          return state.posts.filter(post => post.problem === "Flood").length;
+        },
+
+        powerPostsTotal: state => {
+          return state.posts.filter(post => post.problem === "Power").length;
+        },
+
+        medicalPostsTotal: state => {
+          return state.posts.filter(post => post.problem === "Medical").length;
+        }
+      },
+      plugins: [plugin()]
+    });
+
+    // create vue app instance
+    const app = Vue.createApp({});
+
+    // navbar component to display the navigation bar
+    app.component("navbar", {
+      template: 
+      `<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <router-link to="/home" active-class="active" class="nav-link mx-3">Home</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link to="/livefeed" active-class="active" class="nav-link mx-3">Live Feed</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link to="/analytics" active-class="active" class="nav-link mx-3">Analytics</router-link>
+            </li>
+          </ul>
+        </div>
+      </nav>`,
+    });
+
+    // Define route components
+    // Home component to display simple text explaining about the dashboard, Live Feed page and Analytics page
+    const Home = {
+      template: 
+      `<h2 class="text-center my-3">Home</h2>
+      <div class="jumbotron">
+        <h3>Dashboard</h3>
+        <p>This web application dashboard is used for viewing and analyzing the social media posts resulting from a disaster.</p>
+        <h3>Live Feed</h3>
+        <p>Live Feed page contains the social media posts based on the problem type and priority level. Live Feed page updates automatically with new social media posts as more social media posts are received.</p>
+        <h3>Analytics</h3>
+        <p>Analytics page contains a table displaying a summary of the total number of each problem type and priority level.</p>
+      </div>`,
+    }
+
+    // LiveFeed component to display social media posts with problem type and priority level Filter
+    const LiveFeed = {
+      data() {
+        return {
+          // array for storing the checked checkboxes
+          // problem type and priority level checkboxes are checked by default 
+          checked: ["Fire", "Flood", "Power", "Medical", "Low", "Medium", "High", "Critical"]
+        }
+      },
+      template: 
+        `<h2 class="text-center my-3">Live Feed</h2>
+        <div class="row justify-content-center mb-3">
+          <div class="col-xl-1 mb-3">
+            <label class="form-check-label" for="problem"><strong>Problem:</strong></label>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="fire" name="fire" value="Fire" v-model="checked" checked>
+              <label class="form-check-label" for="fire">Fire</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="flood" name="flood" value="Flood" v-model="checked" checked>
+              <label class="form-check-label" for="flood">Flood</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="power" name="power" value="Power" v-model="checked" checked>
+              <label class="form-check-label" for="power">Power</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="medical" name="medical" value="Medical" v-model="checked" checked>
+              <label class="form-check-label" for="medical">Medical</label>
+            </div>
+          </div>
+
+          <div class="col-xl-1 mb-3">
+            <label class="form-check-label" for="priority"><strong>Priority:</strong></label>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="low" name="low" value="Low" v-model="checked" checked>
+              <label class="form-check-label" for="low">Low</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="medium" name="medium" value="Medium" v-model="checked" checked>
+              <label class="form-check-label" for="medium">Medium</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="high" name="high" value="High" v-model="checked" checked>
+              <label class="form-check-label" for="high">High</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="critical" name="critical" value="Critical" v-model="checked" checked>
+              <label class="form-check-label" for="critical">Critical</label>
+            </div>
+          </div>
+        </div>
+
+        <div v-for="post in filteredPost">
+          <div class="d-flex flex-column justify-content-center">
+            <div class="row">
+              <div class="col">
+                <div class="card card-body mb-3 shadow py-2 mb-2 rounded">
+                  <div class="media flex-column flex-lg-row">
+                    <div class="col-sm-2">
+                      <div>
+                        <img class="rounded-circle border border-dark" alt="image" :src="post.image" width="100" height="100">
+                      </div>
+                    </div>
+                    <div class="col-sm-10">
+                        <div class="media-body">
+                          <p class="my-2 font-weight-bold">{{post.name}}</p>
+                          <span class="badge badge-info mr-2">Problem: {{post.problem}}</span>
+                          <span class="my-2 badge badge-warning">Priority: {{post.priority}}</span>
+                          <p class="my-2">{{post.content}}</p>
+                        </div>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`,
+      computed: {
+        // filter posts based on the problem type and priority level checkboxes state 
+        filteredPost() {
+          if (this.checked.length === 0) { // if nothing is checked
+            return []; // return empty array
+          } else { // filter posts based on the checked problem type and priority level checkboxes
+            return this.$store.getters.getPosts.filter(post =>
+              this.checked.indexOf(post.problem) !== -1 &&
+              this.checked.indexOf(post.priority) !== -1
+            )
+          }
+        }
+      }
+    }
+
+    // Analytics component to display a table summarizing the total number of each problem type and priority level
+    const Analytics = {
+      template: 
+        `<h2 class="text-center my-3">Analytics</h2>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+              <tr>
+                <th></th>
+                <th>Fire</th>
+                <th>Flood</th>
+                <th>Power</th>
+                <th>Medical</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Low</th>
+                <td>{{fireLowCount}}</td>
+                <td>{{floodLowCount}}</td>
+                <td>{{powerLowCount}}</td>
+                <td>{{medicalLowCount}}</td>
+                <td>{{lowPostsTotal}}</td>
+              </tr>
+              <tr>
+                <th>Medium</th>
+                <td>{{fireMediumCount}}</td>
+                <td>{{floodMediumCount}}</td>
+                <td>{{powerMediumCount}}</td>
+                <td>{{medicalMediumCount}}</td>
+                <td>{{mediumPostsTotal}}</td>
+              </tr>
+              <tr>
+                <th>High</th>
+                <td>{{fireHighCount}}</td>
+                <td>{{floodHighCount}}</td>
+                <td>{{powerHighCount}}</td>
+                <td>{{medicalHighCount}}</td>
+                <td>{{highPostsTotal}}</td>
+              </tr>
+              <tr>
+                <th>Critical</th>
+                <td>{{fireCriticalCount}}</td>
+                <td>{{floodCriticalCount}}</td>
+                <td>{{powerCriticalCount}}</td>
+                <td>{{medicalCriticalCount}}</td>
+                <td>{{criticalPostsTotal}}</td>
+              </tr>
+              <tr>
+                <th>Total</th>
+                <td>{{firePostsTotal}}</td>
+                <td>{{floodPostsTotal}}</td>
+                <td>{{powerPostsTotal}}</td>
+                <td>{{medicalPostsTotal}}</td>
+                <td>{{postsTotal}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>`,
+      computed: {
+        // access the getters from the vuex store to get the count of each problem type and priority level
+        fireLowCount() {
+          return this.$store.getters.fireLowCount;
+        },
+        floodLowCount() {
+          return this.$store.getters.floodLowCount;
+        },
+        powerLowCount() {
+          return this.$store.getters.powerLowCount;
+        },
+        medicalLowCount() {
+          return this.$store.getters.medicalLowCount;
+        },
+        lowPostsTotal() {
+          return this.$store.getters.lowPostsTotal;
+        },
+        fireMediumCount() {
+          return this.$store.getters.fireMediumCount;
+        },
+        floodMediumCount() {
+          return this.$store.getters.floodMediumCount;
+        },
+        powerMediumCount() {
+          return this.$store.getters.powerMediumCount;
+        },
+        medicalMediumCount() {
+          return this.$store.getters.medicalMediumCount;
+        },
+        mediumPostsTotal() {
+          return this.$store.getters.mediumPostsTotal;
+        },
+        fireHighCount() {
+          return this.$store.getters.fireHighCount;
+        },
+        floodHighCount() {
+          return this.$store.getters.floodHighCount;
+        },
+        powerHighCount() {
+          return this.$store.getters.powerHighCount;
+        },
+        medicalHighCount() {
+          return this.$store.getters.medicalHighCount;
+        },
+        highPostsTotal() {
+          return this.$store.getters.highPostsTotal;
+        },
+        fireCriticalCount() {
+          return this.$store.getters.fireCriticalCount;
+        },
+        floodCriticalCount() {
+          return this.$store.getters.floodCriticalCount;
+        },
+        powerCriticalCount() {
+          return this.$store.getters.powerCriticalCount;
+        },
+        medicalCriticalCount() {
+          return this.$store.getters.medicalCriticalCount;
+        },
+        criticalPostsTotal() {
+          return this.$store.getters.criticalPostsTotal;
+        },
+
+        firePostsTotal() {
+          return this.$store.getters.firePostsTotal;
+        },
+        floodPostsTotal() {
+          return this.$store.getters.floodPostsTotal;
+        },
+        powerPostsTotal() {
+          return this.$store.getters.powerPostsTotal;
+        },
+        medicalPostsTotal() {
+          return this.$store.getters.medicalPostsTotal;
+        },
+        // access the getters from the vuex store to get the total posts count
+        postsTotal() {
+          return this.$store.getters.postsTotal;
+        }
+      }
+    }
+
+    // Define routes for Home, Live Feed and Analytics page
+    // Each route map to a component
+    const routes = [
+      { path: '/', component: Home },
+      { path: '/home', component: Home },
+      { path: '/livefeed', component: LiveFeed },
+      { path: '/analytics', component: Analytics },
+    ]
+
+    // Create the router instance and pass the `routes` option
+    const router = VueRouter.createRouter({
+      // Provide the history implementation to use
+      history: VueRouter.createWebHashHistory(),
+      routes, // short for `routes: routes`
+    });
+
+    // vue app instance to use the router
+    app.use(router);
+
+    // vue app instance to use the store
+    app.use(store);
+
+    // mount the app
+    app.mount('#app');
+  </script>
+</body>
+</html>
